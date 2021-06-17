@@ -6,6 +6,8 @@ Sample input is provided as Zn.input
 _Default:_
 1. Compile the code using intel compiler. 
 2. Use the executable like this:
+
 `
+ml intel
 ./nn_calib_icc -in input
 `
