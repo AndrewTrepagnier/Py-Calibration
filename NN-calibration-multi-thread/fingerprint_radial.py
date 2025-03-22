@@ -42,35 +42,36 @@ class Fingerprint_radial:
 
             terms = line.split(':')
             # creates an array of numbers counting up to the number of lines and a list of strings
-            str = terms[-2].strip() # Saves the last term as str, this will look like re, rc, dr, ect.
+            if len(terms) > 2:  # Add this line to check length
+                str = terms[-2].strip() # Saves the last term as str, this will look like re, rc, dr, ect.
 
-            if str == "re":
-                # metaparams['re'] = float(lines[i+1].strip()) # save the next line item(string) as a float and the value of the key in the metaparams dictionary
-                self.re = float(lines[i+1].strip())
+                if str == "re":
+                    # metaparams['re'] = float(lines[i+1].strip()) # save the next line item(string) as a float and the value of the key in the metaparams dictionary
+                    self.re = float(lines[i+1].strip())
 
-            elif str == "rc":
-                #  metaparams['rc'] = float(lines[i+1].strip())
-                self.rc = float(lines[i+1].strip())
+                elif str == "rc":
+                    #  metaparams['rc'] = float(lines[i+1].strip())
+                    self.rc = float(lines[i+1].strip())
 
-            elif str == "alpha":
-                # n_alphas is initially a string containing all numbers
-                n_alphas = lines[i+1].strip()  # Ex. "6.950000 6.950000 6.950000 6.950000 6.950000"
-                # Split the string into a list of strings
-                alpha_values = n_alphas.split()  # Ex. ['6.950000', '6.950000', '6.950000', '6.950000', '6.950000']
-                alpha_floats = [float(alpha) for alpha in alpha_values] # Convert each string to float and store in list
-                self.alpha = alpha_floats  
+                elif str == "alpha":
+                    # n_alphas is initially a string containing all numbers
+                    n_alphas = lines[i+1].strip()  # Ex. "6.950000 6.950000 6.950000 6.950000 6.950000"
+                    # Split the string into a list of strings
+                    alpha_values = n_alphas.split()  # Ex. ['6.950000', '6.950000', '6.950000', '6.950000', '6.950000']
+                    alpha_floats = [float(alpha) for alpha in alpha_values] # Convert each string to float and store in list
+                    self.alpha = alpha_floats  
 
-            elif str == "dr":
-                self.dr = float(lines[i+1].strip())
+                elif str == "dr":
+                    self.dr = float(lines[i+1].strip())
 
-            elif str == "n":
-                self.n = float(lines[i+1].strip())
+                elif str == "n":
+                    self.n = float(lines[i+1].strip())
 
-            elif str == "o":
-                self.o = float(lines[i+1].strip())
+                elif str == "o":
+                    self.o = float(lines[i+1].strip())
 
-            elif str == "alphak":
-                self.alphak = float(lines[i+1].strip())
+                elif str == "alphak":
+                    self.alphak = float(lines[i+1].strip())
 
         print(f"re is {self.re}")
         print(f"rc is {self.rc}")
