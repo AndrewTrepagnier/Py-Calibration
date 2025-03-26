@@ -132,7 +132,6 @@ class Fingerprint_radial:
             else:
                 dfctable.append( (-8* ( 1 - (self.rc - np.sqrt[k])/self.dr)**3) / self.dr / (1 - (self.rc - np.sqrt[k])/self.dr)**4 )
 
-    def compute_fingerprint(self):
         
         
 
@@ -141,12 +140,6 @@ class Fingerprint_radial:
 
 
 
-
-
-    
-            
-    
-    
 
               
             
@@ -155,17 +148,9 @@ class Fingerprint_radial:
 
     
 
-Zinc = Fingerprint_radial("/Users/andrewtrepagnier/.cursor-tutor/research/Py-Calibration/Zn.input")
-Zinc.parser()
+# Zinc = Fingerprint_radial("/Users/andrewtrepagnier/.cursor-tutor/research/Py-Calibration/Zn.input")
+# Zinc.parser()
 
 
 
-        # self.full_filename_path = 
-        # input_lines = 
-        # for line in input_lines:
-
-
-
-
-
-
+    
