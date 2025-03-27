@@ -100,17 +100,81 @@ class Fingerprint_radial:
         print(f"alphak is {self.alphak}")
 
     def dump_parser(self):
-         list_of_dump_files  = [f for f in os.listdir(self.dumppath) if os.path.isfile(os.path.join(self.dumppath, f))]
-         num_files = len(list_of_dump_files)
 
-         for files in list_of_dump_files:
-             """ left off on making for loop that will open each folder, take the contents out, and then parse through to get each value and save in a dictionary style format"""
-             
+        """
+        Typical LAMMPS dump item:
 
-        
-        
-        
+        ITEM: TIMESTEP energy, energy_weight, force_weight, nsims
+        1        -199944.4130284513230436    1    1   88
+        ITEM: NUMBER OF ATOMS
+        52        
+        ITEM: BOX BOUNDS xy xz yz pp pp pp
+        -6.6599068561068142     10.6426540787132993     -5.7964044747763319
+        -1.5903743695984427      8.9256853388485613     -0.8635023813304824
+        0.0000000000000000     16.3996700907443120     -1.5903743695984427
+        ITEM: ATOMS id type x y z
+        1      1          1.5004620351452496     0.5243795304393224     3.8834927664029966
+        2      1         -0.4657385064656120     1.2308782860044023     7.0568980742855700
+        3      1          1.2745152962579427     0.0833213387822464     9.3340024694978840
+        .       .           .
+        .       .           .
+        .       .           .
+        52     1          4.0887810494581123     5.4317594751390095    15.0272327985735377
+
     
+        """
+
+        list_of_dump_files = [f for f in os.listdir(self.dumppath) if os.path.isfile(os.path.join(self.dumppath, f))]
+        num_files = len(list_of_dump_files)
+        dump_contents = {} #this is what's in each dump file, which should be like the commented out section above
+
+        # open and save the content in each file to dump_contents
+        if num_files == 0:
+            print("No dump files in folder location specified")
+        else:   
+            for file in list_of_dump_files:
+                file_path = os.path.join(self.dumppath, file)
+                with open(file_path, "r", encoding="utf-8") as f:
+                    dump_contents[file] = f.readlines()  # Changed to readlines() instead of read()
+
+        for dump_data in dump_contents.items():
+            filename, lines = dump_data  # Unpack the filename and content
+
+            # Get number of atoms from the file
+            num_atoms = int(lines[3].strip())  # Assuming NUMBER OF ATOMS is always line 4
+            num_lines_in_item = num_atoms + 9  # Total number of lines of data recorded for each timestep
+            
+            # Initialize arrays correctly
+            atom_line = np.zeros((num_atoms, 4))  # Fixed array creation
+            atom_position = np.zeros((num_atoms, 3))  # Will store just the x,y,z coordinates
+            atom_matrix = np.empty((num_atoms, num_atoms))  # Matrix for pairwise distances
+            energy = []
+
+            # Get energy from first line
+            energy.append(float(lines[1].split()[1]))
+
+            # Read atomic positions
+            for i in range(num_atoms):
+                line_data = lines[9+i].split()  # ITEM: ATOMS starts at line 9
+                id = int(line_data[0])
+                xal, yal, zal = map(float, line_data[2:5])  # Get x,y,z coordinates
+                atom_line[i] = [id, xal, yal, zal]
+                atom_position[i] = [xal, yal, zal]
+            
+            # Calculate pairwise distances
+            for i in range(num_atoms):
+                for j in range(num_atoms):
+                    if i != j:
+                        Euclid_displacement = np.linalg.norm(atom_position[i] - atom_position[j])
+                        atom_matrix[i,j] = Euclid_displacement
+                    else:
+                        atom_matrix[i,j] = None  # Same atom case
+            
+            # Store results as class attributes
+            self.atom_positions = atom_position
+            self.distances = atom_matrix
+            self.energies = energy
+
     def cutoff_function(self, r): #Beauty of having a class-based function in python is that rc, dr are saved in self at all times
             x = (self.rc - r)/self.dr
             if x > 1:
@@ -163,7 +227,7 @@ class Fingerprint_radial:
         dfeaturesy = []
         dfeaturesz = []
 
-        
+
 
 
 
