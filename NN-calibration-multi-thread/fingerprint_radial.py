@@ -9,11 +9,12 @@
 
 import numpy as np
 import pandas as pd
+import os
 
 class Fingerprint_radial:
 
     #def __init__(self, n_body_type, dr, re, rc, alpha, alphak, n, o, id, style=None, atomtypes=None, empty=True, fullydefined = False, inputpath=None):
-    def __init__(self, inputpath=None):
+    def __init__(self, inputpath=None, dumppath=None):
         
         self.n_body_type = None
         self.dr = None
@@ -31,8 +32,9 @@ class Fingerprint_radial:
         self.empty = True      # Default value
         self.fullydefined = False  # Default value
         self.inputpath = inputpath
+        self.dumppath = dumppath
 
-    def parser(self):
+    def input_parser(self):
 
         """
         Parse through looking for metaparameters and assign their corresponding values as objects of self. (ex: for Zinc, it may assignn self.re = 2.6 based off a tranditional input file(must be txt file)
@@ -97,6 +99,18 @@ class Fingerprint_radial:
         print(f"o is {self.o}")
         print(f"alphak is {self.alphak}")
 
+    def dump_parser(self):
+         list_of_dump_files  = [f for f in os.listdir(self.dumppath) if os.path.isfile(os.path.join(self.dumppath, f))]
+         num_files = len(list_of_dump_files)
+
+         for files in list_of_dump_files:
+             """ left off on making for loop that will open each folder, take the contents out, and then parse through to get each value and save in a dictionary style format"""
+             
+
+        
+        
+        
+    
     def cutoff_function(self, r): #Beauty of having a class-based function in python is that rc, dr are saved in self at all times
             x = (self.rc - r)/self.dr
             if x > 1:
@@ -114,7 +128,7 @@ class Fingerprint_radial:
         buffer = 5
         res = 1000
 
-        radial_table = np.array(res+buffer)
+        radial_table = np.array[res+buffer]
         dfctable = np.array[res+buffer] 
         r1 = []
         # m and k give control on the number of fignerprints you want in the input layer
@@ -133,6 +147,28 @@ class Fingerprint_radial:
                 dfctable.append( (-8* ( 1 - (self.rc - np.sqrt[k])/self.dr)**3) / self.dr / (1 - (self.rc - np.sqrt[k])/self.dr)**4 )
 
         
+    def compute_fingerprint(self):
+        """
+        LAMMPS can read dump files and build the neighbor lists for each atom. 
+        This function recieves the pre-calculated neighbor lists and each atoms relative positions(xn, yn, zn) as well as the number of neighbors, jnum
+        In other words, this function processes data in this sequence: 
+        For each atom i:
+            → Gets its neighbors (jnum)
+            → Calculates fingerprints using neighbor distances
+            → Updates features and their derivatives
+        
+        """
+        features = []
+        dfeaturesx = []
+        dfeaturesy = []
+        dfeaturesz = []
+
+        
+
+
+
+
+
         
 
 
