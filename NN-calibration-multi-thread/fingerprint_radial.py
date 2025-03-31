@@ -1,4 +1,3 @@
-
 """
     Transcribed python version of the radial bond structural fingerprint for a pytorch/tensorflow network implementation.
     This file reads the DFT dump file data in a dictionary format and computes fingerprints with a given set of metaparameters
@@ -17,7 +16,9 @@ import os
 @dataclass
 class RadialParameters:
     """
-    Stores and validates all parameters for radial fingerprint computation.
+    Stores and validates all parameters for radial fingerprint computation. The RadialParameters dataclass is acting as a structured container for all your input parameters.
+    Instead of having many separate variables like: self.re, self.rc, self.dr,.., we can organize it as an instance of the RadialParameters adn assign it to self.params.
+    This way, we can access all of our parameters like: self.params.re, self.params.re, ect.
     """
     re: float              # Equilibrium distance
     rc: float             # Cutoff radius
@@ -175,11 +176,11 @@ class Fingerprint_radial:
             atom2   .           .           .
             
             """
-            distances = np.zeros((num_atoms, num_atoms))
+            distance_matrix = np.zeros((num_atoms, num_atoms))
             for i in range(num_atoms):
                 for j in range(num_atoms):
                     if i != j:
-                        distances[i,j] = np.linalg.norm(positions[i] - positions[j])
+                        distance_matrix[i,j] = np.linalg.norm(positions[i] - positions[j])
 
             # Create and store new AtomicSystem
             system = AtomicSystem(
@@ -187,7 +188,7 @@ class Fingerprint_radial:
                 atom_positions=positions,
                 box_bounds=box_bounds,
                 energy=energy,
-                distances=distances
+                distance_matrix=distance_matrix
             )
             self.systems.append(system)
 
@@ -212,7 +213,7 @@ class Fingerprint_radial:
         else:
             return 0
 
-    def radii_table(self) -> tuple[np.ndarray, np.ndarray]:
+    def radii_table(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Generate interpolation tables of radii and derivatives for computational efficiency.
         
@@ -227,20 +228,21 @@ class Fingerprint_radial:
 
         radial_table = np.zeros(res + buffer)
         dfctable = np.zeros(res + buffer)
-        r1 = np.zeros(res + buffer)
-
+        r1 = np.zeros(res + buffer) #Vector that stores the each radius from 0 to rc with res points inbetween.
+        
         for k in range(res + buffer):
-            r1[k] = self.params.rc**2 * k/res
+            r1[k] = self.params.rc**2 * k/res 
             r_sqrt = np.sqrt(r1[k])
             
-            # Compute radial functions for each m value
+            # Once we have our vector of r1 values between 0 and rc, compute radial functions for each m value using the sqrt(r1[k]) value of this each iteration
+            # This function will give an exponential decay component to the radii.
             for m in range(int(self.params.n - self.params.o)):
                 radial_function = (
                     (r_sqrt/self.params.re)**(m + self.params.o) * 
                     np.exp(-self.params.alphak[m] * (r_sqrt/self.params.re)) * 
                     self.cutoff_function(r_sqrt)
                 )
-                radial_table[k] = radial_function
+                radial_table[k] = radial_function #Think of this as the table of dependent variables to the table of independent variables, r1
 
             # Compute cutoff function derivatives
             if r_sqrt >= self.params.rc or r_sqrt <= self.params.rc - self.params.dr:
@@ -249,11 +251,11 @@ class Fingerprint_radial:
                 term = (self.params.rc - r_sqrt) / self.params.dr
                 dfctable[k] = (-8 * (1 - term)**3) / (self.params.dr * (1 - term)**4)
 
-        return radial_table, dfctable
+        return r1, radial_table, dfctable # Added r1 to the table since this is what each element of the distance matrix will look at first and see where it lies.
 
     def compute_fingerprint(self, system_index: int = 0) -> np.ndarray:
         """
-        Compute fingerprints for a given atomic system.
+        Compute fingerprints for a given atomic system using Catmull-Rom spline interpolation.
         
         Args:
             system_index (int): Index of the system to compute fingerprints for
@@ -265,27 +267,60 @@ class Fingerprint_radial:
             raise ValueError("No atomic systems loaded. Run dump_parser first.")
         
         system = self.systems[system_index]
+        r1, radial_table, dfctable = self.radii_table()
         
-        # If fingerprints already computed, return cached version
-        if system.fingerprints is not None:
-            return system.fingerprints
-            
         # Initialize fingerprint array
-        n_fingerprints = len(self.params.alpha)  # or however you determine this
+        n_fingerprints = int(self.params.n - self.params.o)  # Number of radial functions
         fingerprints = np.zeros((system.num_atoms, n_fingerprints))
         
-        # Pre-compute radii table for efficiency
-        radial_table, dfctable = self.radii_table()
-        
-        # Compute fingerprints using vectorized operations where possible
+        # For each atom pair
         for i in range(system.num_atoms):
-            neighbor_distances = system.distances[i]
-            valid_neighbors = neighbor_distances < self.params.rc
-            
-            # Your fingerprint computation logic here
-            # Use vectorized operations with numpy where possible
-            # Example:
-            # fingerprints[i] = some_vectorized_operation(neighbor_distances[valid_neighbors])
-            
+            for j in range(system.num_atoms):
+                if i != j:  # Skip self-interactions
+                    # Get the distance between atoms i and j
+                    rij = system.distances[i,j]
+                    
+                    # Find the position in r1 table where this distance fits
+                    # We need 4 points for cubic interpolation
+                    idx = np.searchsorted(r1, rij) - 1
+                    
+                    if idx > 0 and idx < len(r1) - 2:  # Ensure we have points for interpolation
+                        # Get the four points needed for Catmull-Rom
+                        x = [r1[idx-1], r1[idx], r1[idx+1], r1[idx+2]]
+                        
+                        # Calculate interpolation parameter t
+                        t = (rij - r1[idx]) / (r1[idx+1] - r1[idx])
+                        
+                        # For each radial function
+                        for m in range(n_fingerprints):
+                            # Get the four y-values for interpolation
+                            y = [
+                                radial_table[idx-1],
+                                radial_table[idx],
+                                radial_table[idx+1],
+                                radial_table[idx+2]
+                            ]
+                            
+                            # Catmull-Rom interpolation
+                            t2 = t * t
+                            t3 = t2 * t
+                            
+                            # Catmull-Rom coefficients
+                            p0 = -0.5*t3 + t2 - 0.5*t
+                            p1 = 1.5*t3 - 2.5*t2 + 1.0
+                            p2 = -1.5*t3 + 2.0*t2 + 0.5*t
+                            p3 = 0.5*t3 - 0.5*t2
+                            
+                            # Interpolated value
+                            interpolated_value = (
+                                y[0] * p0 + 
+                                y[1] * p1 + 
+                                y[2] * p2 + 
+                                y[3] * p3
+                            )
+                            
+                            # Add contribution to fingerprint
+                            fingerprints[i,m] += interpolated_value
+        
         system.fingerprints = fingerprints
         return fingerprints
