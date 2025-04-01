@@ -1,0 +1,12 @@
+{
+    "input_file": "Zn.input",
+    "dump_file": "3NN.dump",
+    "rc": 9.000000,
+    "num_atoms": 52,
+    "energy":  -199944.4130284513230436,
+    "test_distance": {
+        "atom1": 0,  
+        "atom2": 1, 
+        "expected_distance": 4.196174004680977 
+    }
+}
