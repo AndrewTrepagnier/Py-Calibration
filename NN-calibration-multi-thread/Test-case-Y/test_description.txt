@@ -1,0 +1,60 @@
+Test script produces an output like this where it successfully parses the input, dump files, and correctly computes radial distances of ij atom pair[0][1]
+
+OUTPUT:
+
+Running parameter test...
+Loaded parameters:
+re is 3.607
+rc is 8.0
+alpha is [4.5]
+dr is 4.393
+o is -1.0
+n is 3.0
+alphak is [1.0, 2.0, 6.0, 9.0]
+k is 4.0
+m is 6.0
+Test passed! ✅
+
+Running output parser test...
+Found dump files: ['liquid.dump']
+First few lines of liquid.dump:
+Line 0: ITEM: TIMESTEP energy, energy_weight, force_weight, nsims
+Line 1: 1        -57652.3345279454952106    1    1   100
+Line 2: ITEM: NUMBER OF ATOMS
+Line 3: 15
+Line 4: ITEM: BOX BOUNDS xy xz yz pp pp pp
+The energy of the system is -57652.334527945495
+Test passed! ✅
+
+
+Running ij pair testing...
+Found dump files: ['liquid.dump']
+First few lines of liquid.dump:
+Line 0: ITEM: TIMESTEP energy, energy_weight, force_weight, nsims
+Line 1: 1        -57652.3345279454952106    1    1   100
+Line 2: ITEM: NUMBER OF ATOMS
+Line 3: 15
+Line 4: ITEM: BOX BOUNDS xy xz yz pp pp pp
+The energy of the system is -57652.334527945495
+Test passed! ✅
+
+
+Computing fingerprints...
+Loaded parameters:
+re is 3.607
+rc is 8.0
+alpha is [4.5]
+dr is 4.393
+o is -1.0
+n is 3.0
+alphak is [1.0, 2.0, 6.0, 9.0]
+k is 4.0
+m is 6.0
+Found dump files: ['liquid.dump']
+First few lines of liquid.dump:
+Line 0: ITEM: TIMESTEP energy, energy_weight, force_weight, nsims
+Line 1: 1        -57652.3345279454952106    1    1   100
+Line 2: ITEM: NUMBER OF ATOMS
+Line 3: 15
+Line 4: ITEM: BOX BOUNDS xy xz yz pp pp pp
+The energy of the system is -57652.334527945495

@@ -1,0 +1,13 @@
+{
+    "input_file": "/Users/andrewtrepagnier/.cursor-tutor/research/Py-Calibration/NN-calibration-multi-thread/Test-case-Y/y.input",
+    "dump_file": "/Users/andrewtrepagnier/.cursor-tutor/research/Py-Calibration/NN-calibration-multi-thread/Test-case-Y/dump_files/",  
+    "rc": 8.00000,
+    "num_atoms": 15 ,
+    "energy": -57652.3345279454952106 ,
+
+    "test_distance": {
+        "atom1": 0,  
+        "atom2": 1, 
+        "expected_distance": 7.597932610343068 
+    }
+}
