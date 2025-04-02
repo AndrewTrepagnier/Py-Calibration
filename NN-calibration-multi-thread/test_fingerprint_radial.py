@@ -49,4 +49,3 @@ def test_fingerprint():
         f"but expected {expected_distance}"
     
     assert Zn_fingerprint.systems[0]
-

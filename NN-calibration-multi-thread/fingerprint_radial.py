@@ -7,6 +7,7 @@
     ------------------------------------------------------------------------------
 """
 
+
 from dataclasses import dataclass
 from typing import List, Optional, Dict
 import numpy as np
@@ -46,7 +47,7 @@ class AtomicSystem:
     atom_positions: np.ndarray    # Shape: (n_atoms, 3) for x,y,z coordinates
     box_bounds: np.ndarray       # Shape: (3, 2) for min/max in x,y,z
     energy: float
-    distances: Optional[np.ndarray] = None  # Pairwise distances matrix
+    distance_matrix: Optional[np.ndarray] = None  # We changed this name
     fingerprints: Optional[np.ndarray] = None
 
 class Fingerprint_radial:
@@ -106,6 +107,8 @@ class Fingerprint_radial:
         for key, value in params_dict.items():
             print(f"{key} is {value}")
 
+
+
     def dump_parser(self):
         """
         Parse LAMMPS dump files and create AtomicSystem instances.
@@ -141,9 +144,15 @@ class Fingerprint_radial:
             print("No dump files in folder location specified")
             return
 
+        print(f"Found dump files: {dump_files}")  # Debug print
+        
         for filename in dump_files:
             with open(os.path.join(self.dumppath, filename), "r", encoding="utf-8") as f:
                 lines = f.readlines()
+                
+            print(f"First few lines of {filename}:")  # Debug print
+            for i, line in enumerate(lines[:5]):
+                print(f"Line {i}: {line.strip()}")  # Debug print
 
             # Parse number of atoms
             num_atoms = int(lines[3].strip())
@@ -191,6 +200,7 @@ class Fingerprint_radial:
                 distance_matrix=distance_matrix
             )
             self.systems.append(system)
+        print(f"The energy of the system is {energy}")
 
     def cutoff_function(self, r: float) -> float:
         """
@@ -278,7 +288,7 @@ class Fingerprint_radial:
             for j in range(system.num_atoms):
                 if i != j:  # Skip self-interactions
                     # Get the distance between atoms i and j
-                    rij = system.distances[i,j]
+                    rij = system.distance_matrix[i,j]
                     
                     # Find the position in r1 table where this distance fits
                     # We need 4 points for cubic interpolation
@@ -322,5 +332,8 @@ class Fingerprint_radial:
                             # Add contribution to fingerprint
                             fingerprints[i,m] += interpolated_value
         
+        
         system.fingerprints = fingerprints
+        print(f"The pair interaction fingerprint vector is {fingerprints}")
         return fingerprints
+    
